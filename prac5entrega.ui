@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>321</width>
-    <height>274</height>
+    <height>320</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -212,9 +212,9 @@
       <attribute name="title">
        <string>Nombre de los dataframes</string>
       </attribute>
-      <layout class="QFormLayout" name="formLayout">
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <layout class="QVBoxLayout" name="verticalLayout_8">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <widget class="QLabel" name="label_5">
            <property name="text">
@@ -227,8 +227,8 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="QLabel" name="label_6">
            <property name="text">
@@ -243,6 +243,57 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Carpeta de salida</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout_2">
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QPushButton" name="btn_select_folder">
+           <property name="text">
+            <string>ELEGIR CARPETA</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <widget class="QScrollArea" name="scrollArea_2">
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents_2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>277</width>
+            <height>69</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <item>
+            <widget class="QLabel" name="label_selected_folder">
+             <property name="text">
+              <string>Ninguna carpeta seleccionada</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Map Document (MXD)</string>
+     </property>
     </widget>
    </item>
    <item>

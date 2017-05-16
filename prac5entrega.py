@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
 import arcpy
-from os import path
 import arcpy.mapping as mapping
+from os import path
 from itertools import chain
-from PyQt4 import QtCore, QtGui, uic
+from PyQt4 import QtGui, uic
 from PyQt4.QtGui import QFileDialog
 from functools import partial
 
@@ -27,6 +27,8 @@ class MyDialogClass(QtGui.QDialog, form_class):
             , [self.combo_norm_c1, self.combo_norm_c2]
         ]
 
+        self.export_folder = '.'
+
         self.checkboxes = [self.checkbox_ts, self.checkbox_vt, self.checkbox_norm]
 
         self.comboboxes = list(chain.from_iterable(self.windows))
@@ -38,6 +40,7 @@ class MyDialogClass(QtGui.QDialog, form_class):
         self.txt_title.textChanged.connect(self.toggleBtnDo)
         self.btn_do.clicked.connect(self.do)
         self.btn_load_shp.clicked.connect(self.getFile)
+        self.btn_select_folder.clicked.connect(self.getResultFolder)
 
         [ check.stateChanged.connect(partial(self.checkboxChanged, check,  i)) for i, check in enumerate(self.checkboxes) ]
         [ check.setCheckState(2) for check in self.checkboxes ]
@@ -90,7 +93,7 @@ class MyDialogClass(QtGui.QDialog, form_class):
             if not self.check_legend.isChecked():
                 self.dataframe1.elementWidth += self.legend_df1.elementWidth
             field = self.combo_ts.currentText()
-            filename = '{}_ts_{}_{}.pdf'.format(title, '_'.join(append_info), field)
+            filename = path.join(self.export_folder, '{}_ts_{}_{}.pdf'.format(title, '_'.join(append_info), field))
 
             self.layer.symbology.valueField = field
 
@@ -102,7 +105,7 @@ class MyDialogClass(QtGui.QDialog, form_class):
             self.setTwoDataFrameMode()
             fields = [ self.combo_comp_t1.currentText(), self.combo_comp_t2.currentText() ]
 
-            filename = '{}_vt_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields)
+            filename = path.join(self.export_folder, '{}_vt_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields))
 
             self.layer.symbology.valueField = fields[0]
             layer_df2 = self.layers[1][0]
@@ -116,7 +119,7 @@ class MyDialogClass(QtGui.QDialog, form_class):
                 self.dataframe1.elementWidth += self.legend_df1.elementWidth
             fields = [ self.combo_norm_c1.currentText(), self.combo_norm_c2.currentText() ]
 
-            filename = '{}_norm_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields)
+            filename = path.join(self.export_folder, '{}_norm_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields))
 
             self.layer.symbology.valueField = fields[0]
             self.layer.symbology.normalization = fields[1]
@@ -168,6 +171,15 @@ class MyDialogClass(QtGui.QDialog, form_class):
 
         self.dataframe1.elementWidth -= 10
         self.dataframe2.elementPositionX -= 100
+
+    def getResultFolder(self):
+        foldername = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+
+        if not foldername : return
+
+        self.export_folder = foldername
+        self.label_selected_folder.setText(self.export_folder)
+        print self.export_folder
 
     def getFile(self):
         dlg = QFileDialog()
