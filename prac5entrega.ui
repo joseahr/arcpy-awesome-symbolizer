@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>473</width>
-    <height>302</height>
+    <width>321</width>
+    <height>274</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,23 +46,20 @@
     </layout>
    </item>
    <item>
-    <widget class="QMdiArea" name="mdiArea">
-     <property name="viewMode">
-      <enum>QMdiArea::TabbedView</enum>
+    <widget class="QTabWidget" name="tabs">
+     <property name="currentIndex">
+      <number>3</number>
      </property>
-     <property name="documentMode">
-      <bool>true</bool>
-     </property>
-     <property name="tabsMovable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="win_ts">
-      <property name="windowTitle">
-       <string>Subwindow</string>
+     <widget class="QWidget" name="tab_ts">
+      <property name="acceptDrops">
+       <bool>false</bool>
       </property>
-      <layout class="QFormLayout" name="formLayout_2">
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_12">
+      <attribute name="title">
+       <string>Temático Simple</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_7">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_13">
          <item>
           <widget class="QCheckBox" name="checkbox_ts">
            <property name="text">
@@ -72,28 +69,46 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
           <widget class="QLabel" name="label_2">
            <property name="text">
             <string>Temático   :</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="QComboBox" name="combo_ts"/>
          </item>
         </layout>
        </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
       </layout>
+      <zorder></zorder>
      </widget>
-     <widget class="QWidget" name="win_vt">
-      <property name="windowTitle">
-       <string>Subwindow</string>
-      </property>
-      <layout class="QFormLayout" name="formLayout">
-       <item row="0" column="0">
+     <widget class="QWidget" name="tab_vt">
+      <attribute name="title">
+       <string>Comparación de varios temáticos</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QCheckBox" name="checkbox_vt">
@@ -104,7 +119,7 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
           <widget class="QLabel" name="label_3">
@@ -118,10 +133,7 @@
          </item>
         </layout>
        </item>
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_11"/>
-       </item>
-       <item row="3" column="0">
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
           <widget class="QLabel" name="label_4">
@@ -138,17 +150,21 @@
       </layout>
       <zorder></zorder>
       <zorder></zorder>
+      <zorder></zorder>
      </widget>
-     <widget class="QWidget" name="win_norm">
-      <property name="windowTitle">
-       <string>Subwindow</string>
-      </property>
-      <layout class="QFormLayout" name="formLayout_3">
-       <property name="fieldGrowthPolicy">
-        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-       </property>
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <widget class="QWidget" name="tab_norm">
+      <attribute name="title">
+       <string>Normalización de campos (cociente)</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
          <item>
           <widget class="QCheckBox" name="checkbox_norm">
            <property name="text">
@@ -158,7 +174,7 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_9">
          <item>
           <widget class="QLabel" name="label_8">
@@ -168,14 +184,15 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="combo_norm_c1"/>
+          <widget class="QComboBox" name="combo_norm_c1">
+           <property name="sizeAdjustPolicy">
+            <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_7"/>
-       </item>
-       <item row="3" column="0">
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
           <widget class="QLabel" name="label_9">
@@ -191,10 +208,78 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_dataframe_names">
+      <attribute name="title">
+       <string>Nombre de los dataframes</string>
+      </attribute>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Data Frame 1:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_edit_df_1"/>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Data Frame 2:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_edit_df_2"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>301</width>
+        <height>69</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_mxd_path">
+         <property name="text">
+          <string>Ningún archivo MXD seleccionado</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_8">
+     <item>
+      <widget class="QPushButton" name="btn_load_shp">
+       <property name="text">
+        <string>MXD</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">

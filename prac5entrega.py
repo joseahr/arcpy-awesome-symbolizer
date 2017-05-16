@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
 import arcpy
+from os import path
 import arcpy.mapping as mapping
 from itertools import chain
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtGui import QMdiArea, QMdiSubWindow, QCheckBox
+from PyQt4.QtGui import QFileDialog
 from functools import partial
 
 #load form
@@ -20,8 +21,6 @@ class MyDialogClass(QtGui.QDialog, form_class):
         #run dialog
         self.setupUi(self)
 
-        self.loadArcpyProjectSettings()
-
         self.windows = [
               [self.combo_ts]
             , [self.combo_comp_t1, self.combo_comp_t2]
@@ -34,43 +33,16 @@ class MyDialogClass(QtGui.QDialog, form_class):
 
         #print self.comboboxes
 
-        [ combo.addItems(self.fieldNames) for combo in self.comboboxes ]
-
-        self.mdiArea.setViewMode(QMdiArea.TabbedView)
-        self.mdiArea.setDocumentMode(True)
-        self.mdiArea.windowOrder = QMdiArea.CreationOrder
-
-        self.win_ts.setWindowTitle(u'Temático simple')
-        self.win_vt.setWindowTitle(u'Comparación temáticos')
-        self.win_norm.setWindowTitle(u'Normalización de campos (cociente)')
-
-        self.mdiArea.addSubWindow(self.win_ts)
-        self.mdiArea.addSubWindow(self.win_vt)
-        self.mdiArea.addSubWindow(self.win_norm)
-
-        '''
-        window_ts = QMdiSubWindow()
-        window_ts.setWidget(self.win_ts)
-        window_vt = QMdiSubWindow(self.win_vt)
-        window_vt.setWidget(self.win_vt)
-        window_norm = QMdiSubWindow()
-        window_norm.setWidget(self.win_norm)
-
-        self.mdiArea.addSubWindow(window_ts)
-        self.mdiArea.addSubWindow(window_vt)
-        self.mdiArea.addSubWindow(window_norm)
-
-        self.mdiArea.setActiveSubWindow(window_ts)
-        '''
-
+        self.tabs.setCurrentIndex(0)
 
         self.txt_title.textChanged.connect(self.toggleBtnDo)
-
         self.btn_do.clicked.connect(self.do)
+        self.btn_load_shp.clicked.connect(self.getFile)
 
         [ check.stateChanged.connect(partial(self.checkboxChanged, check,  i)) for i, check in enumerate(self.checkboxes) ]
         [ check.setCheckState(2) for check in self.checkboxes ]
         [ check.setCheckState(0) for check in self.checkboxes ]
+        [ check.setEnabled(False) for check in self.checkboxes ]
 
 
     def checkboxChanged(self, checkbox, windowID):
@@ -86,64 +58,154 @@ class MyDialogClass(QtGui.QDialog, form_class):
 
     def do(self):
         title = str(self.txt_title.text())
-        mapping.ListLayoutElements(self.mxd, 'TEXT_ELEMENT', 'title')[0].text = title
-        #if not self.check_scale.isChecked() : scaleElement.delete()
-        #if not self.check_legend.isChecked(): legendElement.delete()
+
+        append_info = []
+        if not self.check_scale.isChecked() :
+            self.dataframe1_scaletext.elementPositionX += 100
+            self.dataframe2_scaletext.elementPositionX += 100
+
+            self.dataframe1_scalebar.elementPositionX += 100
+            self.dataframe2_scalebar.elementPositionX += 100
+            append_info.append('no-scale')
+        if not self.check_legend.isChecked():
+            self.legend_title.elementPositionX += 100
+            self.legend_df1.elementPositionX += 100
+            self.legend_df2.elementPositionX += 100
+            append_info.append('no-legend')
+
+        df1name = str(self.line_edit_df_1.text())
+        df2name = str(self.line_edit_df_2.text())
+
+        if not self.dataframes[0].name == df1name:
+            self.dataframes[0].name = df1name
+
+        if not self.dataframes[1].name == df2name:
+            self.dataframes[1].name = df2name
+
+        self.map_title.text = title
+
+        self.setOneDataFrameMode()
 
         if self.checkbox_ts.isChecked() :
+            if not self.check_legend.isChecked():
+                self.dataframe1.elementWidth += self.legend_df1.elementWidth
             field = self.combo_ts.currentText()
-            filename = '{}_ts_{}.pdf'.format(title, field)
+            filename = '{}_ts_{}_{}.pdf'.format(title, '_'.join(append_info), field)
 
             self.layer.symbology.valueField = field
 
             mapping.ExportToPDF(self.mxd, filename)
+            if not self.check_legend.isChecked():
+                self.dataframe1.elementWidth -= self.legend_df1.elementWidth
 
         if self.checkbox_vt.isChecked() :
+            self.setTwoDataFrameMode()
             fields = [ self.combo_comp_t1.currentText(), self.combo_comp_t2.currentText() ]
 
-            filename = '{}_vt_{}.pdf'.format(title, fields[0])
+            filename = '{}_vt_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields)
 
             self.layer.symbology.valueField = fields[0]
+            layer_df2 = self.layers[1][0]
+            layer_df2.symbology.valueField = fields[1]
             mapping.ExportToPDF(self.mxd, filename)
 
-            filename = '{}_vt_{}.pdf'.format(title, fields[1])
-            self.layer.symbology.valueField = fields[1]
-
-            mapping.ExportToPDF(self.mxd, filename)
+            self.setOneDataFrameMode()
 
         if self.checkbox_norm.isChecked() :
+            if not self.check_legend.isChecked():
+                self.dataframe1.elementWidth += self.legend_df1.elementWidth
             fields = [ self.combo_norm_c1.currentText(), self.combo_norm_c2.currentText() ]
 
-            filename = '{}_norm_{}_{}.pdf'.format(title, *fields)
+            filename = '{}_norm_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields)
 
             self.layer.symbology.valueField = fields[0]
             self.layer.symbology.normalization = fields[1]
             self.layer.symbology.numClasses = 5
 
             mapping.ExportToPDF(self.mxd, filename)
+            if not self.check_legend.isChecked():
+                self.dataframe1.elementWidth -= self.legend_df1.elementWidth
 
-        del self.mxd
-        self.loadArcpyProjectSettings()
+        if not self.check_scale.isChecked():
+            self.dataframe1_scaletext.elementPositionX -= 100
+            self.dataframe2_scaletext.elementPositionX -= 100
+
+            self.dataframe1_scalebar.elementPositionX -= 100
+            self.dataframe2_scalebar.elementPositionX -= 100
+        if not self.check_legend.isChecked():
+            self.legend_title.elementPositionX -= 100
+            self.legend_df1.elementPositionX -= 100
+            self.legend_df2.elementPositionX -= 100
+
+        self.setTwoDataFrameMode()
+
         self.txt_title.setText('')
         print 'doneee'
 
+        self.layer.symbology.normalization = None
 
-    def loadArcpyProjectSettings(self):
-        self.mxd = mapping.MapDocument(r'prac5entrega.mxd')
+    def setOneDataFrameMode(self):
 
-        self.dataframe = mapping.ListDataFrames(self.mxd)[0]
+        self.dataframe2_scaletext.elementPositionX += 100
+        self.dataframe1_scalebar.elementPositionX += 10
+        self.dataframe2_scalebar.elementPositionX += 100
 
-        self.layer = mapping.ListLayers(self.mxd, '', self.dataframe)[0]
+        self.legend_title.elementPositionX += 10
+        self.legend_df1.elementPositionX += 10
+        self.legend_df2.elementPositionX += 100
 
-        self.layer_lyr = arcpy.MakeFeatureLayer_management(self.layer)
-        self.fields = arcpy.ListFields(self.layer_lyr)
-        self.fieldNames = map(lambda x: x.name, self.fields)
-        # print fieldNames
+        self.dataframe1.elementWidth += 10
+        self.dataframe2.elementPositionX += 100
 
-        self.legendElement = mapping.ListLayoutElements(self.mxd, 'LEGEND_ELEMENT', 'legend')[0]
-        self.scaleElement = mapping.ListLayoutElements(self.mxd, 'MAPSURROUND_ELEMENT', 'scale_text')[0]
-        # print legendElement, scaleElement
-        #print self.layer.symbologyType
+    def setTwoDataFrameMode(self):
+        self.dataframe2_scaletext.elementPositionX -= 100
+        self.dataframe1_scalebar.elementPositionX -= 10
+        self.dataframe2_scalebar.elementPositionX -= 100
+
+        self.legend_title.elementPositionX -= 10
+        self.legend_df1.elementPositionX -= 10
+        self.legend_df2.elementPositionX -= 100
+
+        self.dataframe1.elementWidth -= 10
+        self.dataframe2.elementPositionX -= 100
+
+    def getFile(self):
+        dlg = QFileDialog()
+        dlg.setFileMode(QFileDialog.ExistingFile)
+        dlg.setFilter("shapefile (*.mxd)")
+
+        if dlg.exec_():
+            filepath = map(str, list(dlg.selectedFiles()))[0]
+            self.mxd = mapping.MapDocument(filepath)
+            self.dataframes = mapping.ListDataFrames(self.mxd)
+            self.layers = map(lambda dataframe : mapping.ListLayers(self.mxd, None, dataframe), self.dataframes)
+            self.layer = self.layers[0][0]
+
+            fieldnames = map( lambda x : x.name, arcpy.ListFields(self.layer.dataSource) )
+            #print fieldnames
+
+            [combo.addItems(fieldnames) for combo in self.comboboxes]
+            #print self.mxd, self.dataframes, self.layers
+
+            [check.setEnabled(True) for check in self.checkboxes]
+
+            self.label_mxd_path.setText(filepath)
+            self.line_edit_df_1.setText(self.dataframes[0].name)
+            self.line_edit_df_2.setText(self.dataframes[1].name)
+
+            self.dataframe1_scalebar = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1-scale-bar')[0]
+            self.dataframe1_scaletext = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1-scale-text')[0]
+            self.dataframe2_scalebar = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2-scale-bar')[0]
+            self.dataframe2_scaletext = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2-scale-text')[0]
+
+            self.legend_title = mapping.ListLayoutElements(self.mxd, '', 'legend-title')[0]
+            self.legend_df1 = mapping.ListLayoutElements(self.mxd, '', 'legend-df-1')[0]
+            self.legend_df2 = mapping.ListLayoutElements(self.mxd, '', 'legend-df-2')[0]
+
+            self.map_title = mapping.ListLayoutElements(self.mxd, 'TEXT_ELEMENT', 'title')[0]
+
+            self.dataframe1 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1')[0]
+            self.dataframe2 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2')[0]
 
 app = QtGui.QApplication(sys.argv)
 myDialog = MyDialogClass(None)
