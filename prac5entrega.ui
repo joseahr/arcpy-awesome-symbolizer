@@ -27,10 +27,17 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="txt_title"/>
+      <widget class="QLineEdit" name="txt_title">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QCheckBox" name="check_scale">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Escala</string>
        </property>
@@ -38,6 +45,9 @@
      </item>
      <item>
       <widget class="QCheckBox" name="check_legend">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Leyenda</string>
        </property>
@@ -62,6 +72,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_13">
          <item>
           <widget class="QCheckBox" name="checkbox_ts">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Realizar mapa</string>
            </property>
@@ -79,7 +92,14 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QComboBox" name="combo_ts"/>
+          <widget class="QComboBox" name="combo_ts">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="editable">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -112,6 +132,9 @@
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QCheckBox" name="checkbox_vt">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Realizar mapa</string>
            </property>
@@ -129,7 +152,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="combo_comp_t1"/>
+          <widget class="QComboBox" name="combo_comp_t1">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -143,7 +170,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="combo_comp_t2"/>
+          <widget class="QComboBox" name="combo_comp_t2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -167,6 +198,9 @@
          </property>
          <item>
           <widget class="QCheckBox" name="checkbox_norm">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Realizar mapa</string>
            </property>
@@ -185,6 +219,9 @@
          </item>
          <item>
           <widget class="QComboBox" name="combo_norm_c1">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="sizeAdjustPolicy">
             <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
            </property>
@@ -202,7 +239,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="combo_norm_c2"/>
+          <widget class="QComboBox" name="combo_norm_c2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -223,7 +264,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="line_edit_df_1"/>
+          <widget class="QLineEdit" name="line_edit_df_1">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -237,7 +282,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="line_edit_df_2"/>
+          <widget class="QLineEdit" name="line_edit_df_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -346,6 +395,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="btn_do">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Imprimir mapas (0)</string>
        </property>
