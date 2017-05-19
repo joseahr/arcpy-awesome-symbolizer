@@ -2,6 +2,7 @@
 import sys
 import arcpy
 import arcpy.mapping as mapping
+import math
 from os import path
 from multiprocessing import Process
 from itertools import chain
@@ -13,7 +14,10 @@ from functools import partial
 # Esto comvierte el formulario XML diseñado en QT designer
 # en código Python. También se puede usar el ejecutable uic
 # para utilizarlo en la línea de comandos
-form_class = uic.loadUiType("prac5entrega.ui")[0]
+form_class = uic.loadUiType("awesome-symbolizer.ui")[0]
+
+MXD_PATH = 'dummymxd.mxd'
+GRADUATED_COLORS_LYR_PATH = 'graduated_colors.lyr'
 
 # Clase diálogo - Hereda las propiedades de QDialog
 # y el formulario generado del XML
@@ -27,11 +31,16 @@ class MyDialogClass(QtGui.QDialog, form_class):
         # Como llamar al constructor de la clase QDialog
         self.setupUi(self)
 
+        self.mode = 2
+
+        self.loadMXD()
+        self.loadLYR()
+
         # Título del mapa
         self.title = ''
 
         # Información extra en los paths de salida
-        self.append_info = ''
+        self.append_info = []
 
         # Creamos una lista que almacenará
         # los comboboxes de cada ventana
@@ -165,13 +174,25 @@ class MyDialogClass(QtGui.QDialog, form_class):
         @brief: Realiza el mapa temático simple
         @return: None
         '''
+
+        if self.mode == 2: self.setOneDataFrameMode()
+
+        layer_df1, _ = self.layers
+
+        #layer_df1.symbology.reclassify()
+
         if not self.check_legend.isChecked():
             self.dataframe1.elementWidth += self.legend_df1.elementWidth
 
         field = self.combo_ts.currentText()
         filename = path.join(self.export_folder, '{}_ts_{}_{}.pdf'.format(self.title, '_'.join(self.append_info), field))
 
-        self.layer.symbology.valueField = field
+        layer_df1.symbology.valueField = field
+        print 'TS Break Values', layer_df1.symbology.classBreakValues
+        #layer_df1.symbology.classBreakValues = self.normalizeBreakValues(layer_df1.symbology.classBreakValues)
+        #self.GRADUATED_COLORS.symbology.valueField = field
+
+        #arcpy.ApplySymbologyFromLayer_management(layer_df1, self.GRADUATED_COLORS)
 
         mapping.ExportToPDF(self.mxd, filename)
 
@@ -184,17 +205,24 @@ class MyDialogClass(QtGui.QDialog, form_class):
         @brief: Realiza el mapa con varios temáticos
         @return: None
         '''
-        self.setTwoDataFrameMode()
+        if self.mode == 1: self.setTwoDataFrameMode()
+
+        layer_df1, layer_df2 = self.layers
+
+        #layer_df1.symbology.reclassify()
+        #layer_df2.symbology.reclassify()
+
         fields = [self.combo_comp_t1.currentText(), self.combo_comp_t2.currentText()]
 
-        filename = path.join(self.export_folder, '{}_vt_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields))
+        filename = path.join(self.export_folder, '{}_vt_{}_{}_{}.pdf'.format(self.title, '_'.join(self.append_info), *fields))
 
-        self.layer.symbology.valueField = fields[0]
-        layer_df2 = self.layers[1][0]
+        layer_df1.symbology.valueField = fields[0]
         layer_df2.symbology.valueField = fields[1]
+        print 'VT Break Values', layer_df1.symbology.classBreakValues
+        print 'VT Break Values', layer_df2.symbology.classBreakValues
+        #layer_df1.symbology.classBreakValues = self.normalizeBreakValues(layer_df1.symbology.classBreakValues)
+        #layer_df2.symbology.classBreakValues = self.normalizeBreakValues(layer_df2.symbology.classBreakValues)
         mapping.ExportToPDF(self.mxd, filename)
-
-        self.setOneDataFrameMode()
 
     def doNormalizacion(self):
         '''
@@ -202,23 +230,31 @@ class MyDialogClass(QtGui.QDialog, form_class):
         @brief: Realiza el mapa de normalización
         @return: None
         '''
+
+        if self.mode == 2: self.setOneDataFrameMode()
+
+        layer_df1, _ = self.layers
+
+        #layer_df1.symbology.reclassify()
+
         if not self.check_legend.isChecked():
             self.dataframe1.elementWidth += self.legend_df1.elementWidth
         fields = [self.combo_norm_c1.currentText(), self.combo_norm_c2.currentText()]
 
-        filename = path.join(self.export_folder, '{}_norm_{}_{}_{}.pdf'.format(title, '_'.join(append_info), *fields))
+        filename = path.join(self.export_folder, '{}_norm_{}_{}_{}.pdf'.format(self.title, '_'.join(self.append_info), *fields))
 
-        self.layer.symbology.valueField = fields[0]
-        self.layer.symbology.normalization = fields[1]
-        self.layer.symbology.numClasses = 5
-
+        layer_df1.symbology.valueField = fields[0]
+        layer_df1.symbology.normalization = fields[1]
+        #layer_df1.symbology.numClasses = 5
+        print 'NORM Break Values', layer_df1.symbology.classBreakValues
+        #layer_df1.symbology.classBreakValues = self.normalizeBreakValues(layer_df1.symbology.classBreakValues)
         mapping.ExportToPDF(self.mxd, filename)
         if not self.check_legend.isChecked():
             self.dataframe1.elementWidth -= self.legend_df1.elementWidth
 
         # Ponemos normalización igual a None
         # Así no afectará a próximos mapas
-        self.layer.symbology.normalization = None
+        layer_df1.symbology.normalization = None
 
     def do(self):
         '''
@@ -254,10 +290,6 @@ class MyDialogClass(QtGui.QDialog, form_class):
         # dataframes, actualizamos los nombres
         self.checkDataFrameNames()
 
-        # Ponemos el mapa en modo "Single-DataFrame"
-        # Moviendo el segundo DF fuera del Layout
-        self.setOneDataFrameMode()
-
         # Si el check de TS está marcado realizamos el mapa TS
         if self.checkbox_ts.isChecked() : self.doTematicoSimple()
         # Si el check de VT está marcado realizamos el mapa VT
@@ -272,10 +304,6 @@ class MyDialogClass(QtGui.QDialog, form_class):
         if not self.check_legend.isChecked():
             self.checkLegendAfter()
 
-        # Finalizamos dejando el mapa en estado "Two-DataFrames"
-        # el cual es el que viene por defecto en nuestro MXD
-        self.setTwoDataFrameMode()
-
         # Reinicializamos el LineEDIT del título
         self.txt_title.setText('')
 
@@ -289,6 +317,7 @@ class MyDialogClass(QtGui.QDialog, form_class):
                 y hace ocupar todo el ancho a lo relacionado con el DF1
         @return: None
         '''
+        self.mode = 1
         self.dataframe2_scaletext.elementPositionX += 100
         self.dataframe1_scalebar.elementPositionX += 10
         self.dataframe2_scalebar.elementPositionX += 100
@@ -297,7 +326,9 @@ class MyDialogClass(QtGui.QDialog, form_class):
         self.legend_df1.elementPositionX += 10
         self.legend_df2.elementPositionX += 100
 
+        print 'd1 width', self.dataframe1.elementWidth
         self.dataframe1.elementWidth += 10
+        print 'd1 width', self.dataframe1.elementWidth
         self.dataframe2.elementPositionX += 100
 
     def setTwoDataFrameMode(self):
@@ -306,6 +337,7 @@ class MyDialogClass(QtGui.QDialog, form_class):
         @brief: Deshace lo hecho por la función setOneDataFrameMode
         @return: None
         '''
+        self.mode = 2
         self.dataframe2_scaletext.elementPositionX -= 100
         self.dataframe1_scalebar.elementPositionX -= 10
         self.dataframe2_scalebar.elementPositionX -= 100
@@ -313,9 +345,13 @@ class MyDialogClass(QtGui.QDialog, form_class):
         self.legend_title.elementPositionX -= 10
         self.legend_df1.elementPositionX -= 10
         self.legend_df2.elementPositionX -= 100
-
+        print 'd1 width', self.dataframe1.elementWidth
         self.dataframe1.elementWidth -= 10
+        print 'd1 width', self.dataframe1.elementWidth
         self.dataframe2.elementPositionX -= 100
+
+    def normalizeBreakValues(self, values):
+        return [ math.floor(val) if index == 0 else math.ceil(val) for index, val in enumerate(values)]
 
     def getResultFolder(self):
         '''
@@ -339,46 +375,81 @@ class MyDialogClass(QtGui.QDialog, form_class):
         '''
         dlg = QFileDialog()
         dlg.setFileMode(QFileDialog.ExistingFile)
-        dlg.setFilter("shapefile (*.mxd)")
+        dlg.setFilter("shapefile (*.shp)")
 
         if dlg.exec_():
             filepath = map(str, list(dlg.selectedFiles()))[0]
-            self.mxd = mapping.MapDocument(filepath)
-            self.dataframes = mapping.ListDataFrames(self.mxd)
-            self.layers = map(lambda dataframe : mapping.ListLayers(self.mxd, None, dataframe), self.dataframes)
-            self.layer = self.layers[0][0]
 
-            fieldnames = map( lambda x : x.name, arcpy.ListFields(self.layer.dataSource) )
-            #print fieldnames
+            self.deleteLayers()
 
+            self.label_shp_path.setText(filepath)
+
+            layer = mapping.Layer(filepath)
+
+            self.addLayer(layer)
+
+            [mapping.UpdateLayer(df, l, self.GRADUATED_COLORS) for df in self.dataframes for l in mapping.ListLayers(self.mxd, '', df)]
+
+            self.layers = mapping.ListLayers(self.mxd)
+
+            fieldnames = map(lambda x: x.name, arcpy.ListFields(layer.dataSource))
+            # print fieldnames
+
+            [combo.clear() for combo in self.comboboxes]
             [combo.addItems(fieldnames) for combo in self.comboboxes]
-            #print self.mxd, self.dataframes, self.layers
+            print self.mxd, self.dataframes, self.layers
 
             [check.setEnabled(True) for check in self.checkboxes]
 
-            self.txt_title.setEnabled(True)
-            self.check_scale.setEnabled(True)
-            self.check_legend.setEnabled(True)
-            self.line_edit_df_1.setEnabled(True)
-            self.line_edit_df_2.setEnabled(True)
 
-            self.label_mxd_path.setText(filepath)
-            self.line_edit_df_1.setText(self.dataframes[0].name)
-            self.line_edit_df_2.setText(self.dataframes[1].name)
+    def deleteLayers(self):
+        [mapping.RemoveLayer(df, l) for df in self.dataframes for l in mapping.ListLayers(self.mxd, '', df)]
+        #print 'layers', mapping.ListLayers(self.mxd)
 
-            self.dataframe1_scalebar = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1-scale-bar')[0]
-            self.dataframe1_scaletext = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1-scale-text')[0]
-            self.dataframe2_scalebar = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2-scale-bar')[0]
-            self.dataframe2_scaletext = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2-scale-text')[0]
+    def addLayer(self, l):
+        [mapping.AddLayer(df, l) for df in self.dataframes]
 
-            self.legend_title = mapping.ListLayoutElements(self.mxd, '', 'legend-title')[0]
-            self.legend_df1 = mapping.ListLayoutElements(self.mxd, '', 'legend-df-1')[0]
-            self.legend_df2 = mapping.ListLayoutElements(self.mxd, '', 'legend-df-2')[0]
+    def loadLYR(self):
+        self.GRADUATED_COLORS = mapping.Layer(GRADUATED_COLORS_LYR_PATH)
 
-            self.map_title = mapping.ListLayoutElements(self.mxd, 'TEXT_ELEMENT', 'title')[0]
+    def loadMXD(self):
+        self.mxd = mapping.MapDocument(MXD_PATH)
+        self.dataframes = mapping.ListDataFrames(self.mxd)
 
-            self.dataframe1 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1')[0]
-            self.dataframe2 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2')[0]
+        '''
+        self.layers = map(lambda dataframe: mapping.ListLayers(self.mxd, None, dataframe), self.dataframes)
+        self.layer = self.layers[0][0]
+
+        fieldnames = map(lambda x: x.name, arcpy.ListFields(self.layer.dataSource))
+        # print fieldnames
+
+        [combo.addItems(fieldnames) for combo in self.comboboxes]
+        # print self.mxd, self.dataframes, self.layers
+
+        [check.setEnabled(True) for check in self.checkboxes]
+        '''
+        self.txt_title.setEnabled(True)
+        self.check_scale.setEnabled(True)
+        self.check_legend.setEnabled(True)
+        self.line_edit_df_1.setEnabled(True)
+        self.line_edit_df_2.setEnabled(True)
+
+        self.line_edit_df_1.setText(self.dataframes[0].name)
+        self.line_edit_df_2.setText(self.dataframes[1].name)
+
+        self.dataframe1_scalebar = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1-scale-bar')[0]
+        self.dataframe1_scaletext = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1-scale-text')[0]
+        self.dataframe2_scalebar = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2-scale-bar')[0]
+        self.dataframe2_scaletext = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2-scale-text')[0]
+
+        self.legend_title = mapping.ListLayoutElements(self.mxd, '', 'legend-title')[0]
+        self.legend_df1 = mapping.ListLayoutElements(self.mxd, '', 'legend-df-1')[0]
+        self.legend_df2 = mapping.ListLayoutElements(self.mxd, '', 'legend-df-2')[0]
+
+        self.map_title = mapping.ListLayoutElements(self.mxd, '', 'title')[0]
+
+        self.dataframe1 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-1')[0]
+        self.dataframe2 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2')[0]
 
 app = QtGui.QApplication(sys.argv)
 myDialog = MyDialogClass(None)

@@ -341,7 +341,7 @@
    <item>
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>Map Document (MXD)</string>
+      <string>Shapefile (SHP)</string>
      </property>
     </widget>
    </item>
@@ -361,9 +361,9 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QLabel" name="label_mxd_path">
+        <widget class="QLabel" name="label_shp_path">
          <property name="text">
-          <string>Ningún archivo MXD seleccionado</string>
+          <string>Ningún archivo SHP seleccionado</string>
          </property>
         </widget>
        </item>
@@ -376,7 +376,7 @@
      <item>
       <widget class="QPushButton" name="btn_load_shp">
        <property name="text">
-        <string>MXD</string>
+        <string>SHP</string>
        </property>
       </widget>
      </item>
