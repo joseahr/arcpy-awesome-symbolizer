@@ -121,13 +121,13 @@ También hacemos que algunos componentes (``QCombobox``, ``QCheckBox``, ``...``)
 
 Los botones para seleccionar ``.shp`` y seleccionar ``la carpeta de salida`` abrirán los siguientes formularios respectivamente:
 
-![Seleccionar shapefile](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_selec_shp.PNG)
+![Seleccionar shapefile](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_selec_shp.png)
 
-![Seleccionar carpeta de salida](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_selec_dir.PNG)
+![Seleccionar carpeta de salida](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_selec_dir.png)
 
 Si el proceso de exportación de los archivos ``.pdf`` no finaliza con errores (no debe) mostraremos un mensaje de información:
 
-![Mensaje Success](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_success_msg.PNG)
+![Mensaje Success](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_success_msg.png)
 
 
 Una vez realizado el formulario, pasamos a crear todo el material necesario para el funcionamiento de la aplicación a partir de **ArcMap**, es decir:
