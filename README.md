@@ -1,4 +1,4 @@
-![Example Stops](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_exe.png)
+![Formulario](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_exe.png)
 
 # Índice
 ***
@@ -14,11 +14,11 @@
 # Introducción y Objetivos
 ***
 
-El objetivo del presente documento es mostrar el trabajo realizado en la elaboración de una herramienta para realizar temáticos dependiendo de distintas opciones.
+El objetivo del presente documento es mostrar el trabajo realizado en la elaboración de una herramienta para realizar mapas temáticos dependiendo de distintas opciones.
 
-Utilizaremos para construir la interfaz gráfica *`PyQt4`*, un binding de la librería Qt escrita en ``C++``, para python.
+Utilizaremos para construir la interfaz gráfica *`PyQt4`*, un binding de la librería ``Qt`` escrita en ``C++``, para ``python``.
 
-El flujo de trabajo de la aplicación será:
+El **flujo de trabajo** de la aplicación será:
 
 - Leer el fichero ``.mxd`` que contendrá dos layouts, diseño del mapa, etc.
 - Leer archivo ``.lyr`` que contendrá la simbología ``GRADUATED_COLORS`` (Este es obtenido a partir de una capa en el entorno de escritorio de ArcGIS)
@@ -27,9 +27,9 @@ El flujo de trabajo de la aplicación será:
 
 ## ¿Porqué este flujo de trabajo?
 
-Existen **limitaciones** a la hora de utilizar arcpy que hay que tener en cuenta en esta práctica:
+Existen [**limitaciones**](http://help.arcgis.com/en/arcgisdesktop/10.0/help/index.html#//00s30000006s000000) a la hora de utilizar ``arcpy`` (en concreto ``arcpy.mapping``) que hay que tener en cuenta en esta práctica:
 
-- No podemos generar desde arcpy proyectos de ArcMap (.mxd)
+- No podemos generar desde ``arcpy`` proyectos de ArcMap (``.mxd``)
 - No podemos crear una capa de simbología ``lyr`` a partir de un shapefile seleccionado. Hay que crear manualmente un archivo ``.lyr`` con la simbología deseado desde **ArcMap** y utilizar ``arcpy.mapping.UpdateLayer`` o ``arcpy.ApplySymbologyFromLayer_management`` para actualizar la simbología de una capa que añadimos al dataframe. Es decir:
 ```python
 if layer.symbologyType == u'OTHER':
@@ -41,6 +41,12 @@ layer.symbology = GraduatedColorsSymbology()
 ...
 layer.symbology = AnotherSymbologyClass()
 ```
+
+Esto sigue siendo así incluso en [nuevas versiones](http://desktop.arcgis.com/es/arcmap/latest/analyze/arcpy-mapping/introduction-to-arcpy-mapping.htm#ESRI_SECTION1_B482E78268684B728BFF0636AAFF40FD):
+
+> ``Arcpy.mapping`` is not a replacement for ``ArcObjects`` but rather an alternative for the different scenarios it supports. ArcObjects is still necessary for finer-grain development and application customization, whereas ``arcpy.mapping`` **is intended for automating the contents of existing map documents and layer files**.
+
+> ``Arcpy.mapping`` no es un reemplazamiento de ``ArcObjects`` pero una alternativa en los escenarios que soporta. ``ArcObjects`` sigue siendo necesario para un desarrollo más refinado y una aplicación más personalizada, mientras que ``arcpy.mapping`` **pretende automatizar los contenidos de documentos de mapa o archivos de capa existentes.**.
 
 ### Herramientas utilizadas
 
@@ -63,7 +69,7 @@ from PyQt4.QtGui import QFileDialog, QMessageBox
 from functools import partial
 ```
 
-Una cosa importante a tener en cuenta en los imports es no sobreescribir funciones [built-in](https://docs.python.org/2/library/functions.html#built-in-functions) de python:
+Una cosa importante a tener en cuenta en las declaraciones ``import`` es no sobreescribir funciones [built-in](https://docs.python.org/2/library/functions.html#built-in-functions) de python:
 
 ```python
 import arcpy.mapping as map
@@ -74,7 +80,22 @@ El código anterior es una mala práctica, ya que estamos sobreescribiendo la fu
  
 ### Desarrollo del formulario PyQt4 mediante Qt Designer
 
-El desarrollo del formulario se ha llevado a cabo utilizando **Qt Designer**, una herramienta para crear formularios de forma interactiva en **Qt**. **Qt** generará un archivo ``.ui``, un archivo de texto escrito en un lenguaje de marcas que mapea los componentes que hemos utilizado.
+El desarrollo del formulario se ha llevado a cabo utilizando **Qt Designer**, una herramienta para crear formularios de forma interactiva para **Qt**. **Qt** generará un archivo ``.ui``, un archivo ``XML`` que mapea los componentes que hemos utilizado en nuestro formulario.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+   ...
+   </rect>
+  </property>
+  ...
+ </widget>
+</ui>
+```
 
 Con este archivo podemos hacer dos cosas:
 - Utilizar le herramienta de línea de comandos llamada ``uic`` y que viene en la carpeta ``bin`` dentro de la instalación de ``PyQt4``, que generará un archivo ``.py`` con la inicialización de los componentes de nuestro formulario.
@@ -119,13 +140,13 @@ También hacemos que algunos componentes (``QCombobox``, ``QCheckBox``, ``...``)
 
 ![Seleccionar carpeta de salida](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_select_folder.PNG)
 
-Los botones para seleccionar ``.shp`` y seleccionar ``la carpeta de salida`` abrirán los siguientes formularios respectivamente:
+Los botones para seleccionar ``.shp`` y seleccionar ``la carpeta de salida`` abrirán los siguientes diálogos respectivamente:
 
 ![Seleccionar shapefile](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_selec_shp.png)
 
 ![Seleccionar carpeta de salida](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_selec_dir.png)
 
-Si el proceso de exportación de los archivos ``.pdf`` no finaliza con errores (no debe) mostraremos un mensaje de información:
+Si el proceso de exportación de los archivos ``.pdf`` no finaliza con errores mostraremos un mensaje de información:
 
 ![Mensaje Success](https://raw.githubusercontent.com/joseahr/arcpy-awesome-symbolizer/master/images/form_success_msg.png)
 
@@ -158,7 +179,7 @@ from functools import partial
 form_class = uic.loadUiType("awesome-symbolizer.ui")[0]
 
 # Ruta del fichero MXD del proyecto
-# Aquí estarán los2 DataFrames necesarios
+# Aquí estarán los 2 DataFrames necesarios
 MXD_PATH = 'dummymxd.mxd'
 
 # Ruta del fichero LYR que contiene la simbología
@@ -665,17 +686,19 @@ app.exec_()
 # Resultados 
 ***
 
-En este apartado se muestran los links hacia cada uno de los resultados:
+En este apartado se muestran los enlaces hacia cada uno de los resultados:
 
-- [Sin escala](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-scale)
-- [Sin leyenda](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-legend)
-- [Sin leyenda y sin escala](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-legend-no-scale)
-- [Completo (Con leyenda y escala)](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/complete)
+- [Mapas temáticos sin escala](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-scale)
+- [Mapas temáticos sin leyenda](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-legend)
+- [Mapas temáticos sin leyenda y sin escala](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-legend-no-scale)
+- [Mapas temáticos completos (con leyenda y escala)](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/complete)
 
 # Conclusiones
 ***
 
 Se ha obtenido una buena herramienta para realizar mapas temáticos, a partir de una capa ``shp``, basado en sus atributos.
-El diseño del mapa es un diseño simple, sin coordenadas, pero cumple con su función de mostrar atributos temáticos.
+El diseño del mapa es un diseño simple, sin coordenadas, pero cumple con su función de mostrar atributos temáticos y ser amigable para el usuario final.
 
 En lo que se refiere al formulario, una mejora para la experiencia de usuario, sería utilizar ``QThreads`` y ``QSIGNALS`` para ejecutar ciertas procesos en otro hilo (Para que no interfiera en el hilo de renderizado del ``UI``). Podríamos utilizar esto al cargar los shapefiles y al ejecutar los procesos de impresión de los mapas. De esta manera evitaríamos que el formulario se congelara. Se utilizarían las ``QSIGNALS`` para la comunicación entre el hilo que ejecuta el proceso y el hilo de renderizado.
+
+Se podría añadir también una mejora, para tener el control sobre los ``classBreakValues``, de este modo el usuario pueda cambiar o manejar un redondeo por nuestra cuenta, de modo que sean más legibles en un mapa (por ejemplo si tienen decimales) o para tener rangos de valores más adecuados. [Un intento de esta mejora](https://github.com/joseahr/arcpy-awesome-symbolizer/blob/master/awesome-symbolizer.py#L382) se llevó a cabo sin éxito, ya que los mapas no se imprimían correctamente.
