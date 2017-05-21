@@ -198,6 +198,10 @@ class MyDialogClass(QtGui.QDialog, form_class):
 
         layer_df1, _ = self.layers
 
+        # Hacemos que el DF ocupe todo el ancho si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth += self.legend_df1.elementWidth
+
         field = self.combo_ts.currentText()
         filename = path.join(
             self.export_folder
@@ -212,6 +216,11 @@ class MyDialogClass(QtGui.QDialog, form_class):
         #arcpy.ApplySymbologyFromLayer_management(layer_df1, self.GRADUATED_COLORS)
 
         mapping.ExportToPDF(self.mxd, filename)
+
+        # Volvemos a hacer que el dataframe ocupe el ancho original
+        # si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth -= self.legend_df1.elementWidth
 
     def doVariosTematicos(self):
         '''
@@ -249,6 +258,10 @@ class MyDialogClass(QtGui.QDialog, form_class):
 
         layer_df1, _ = self.layers
 
+        # Hacemos que el DF ocupe todo el ancho si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth += self.legend_df1.elementWidth
+
         fields = [self.combo_norm_c1.currentText(), self.combo_norm_c2.currentText()]
 
         filename = path.join(
@@ -266,6 +279,11 @@ class MyDialogClass(QtGui.QDialog, form_class):
         # Ponemos normalización igual a None
         # Así no afectará a próximos mapas
         layer_df1.symbology.normalization = None
+
+        # Volvemos a hacer que el dataframe ocupe el ancho original
+        # si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth -= self.legend_df1.elementWidth
 
     def do(self):
         '''

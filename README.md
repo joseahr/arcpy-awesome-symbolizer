@@ -314,6 +314,10 @@ class MyDialogClass(QtGui.QDialog, form_class):
 
         layer_df1, _ = self.layers
 
+        # Hacemos que el DF ocupe todo el ancho si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth += self.legend_df1.elementWidth
+
         field = self.combo_ts.currentText()
         filename = path.join(
             self.export_folder
@@ -328,6 +332,11 @@ class MyDialogClass(QtGui.QDialog, form_class):
         #arcpy.ApplySymbologyFromLayer_management(layer_df1, self.GRADUATED_COLORS)
 
         mapping.ExportToPDF(self.mxd, filename)
+
+        # Volvemos a hacer que el dataframe ocupe el ancho original
+        # si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth -= self.legend_df1.elementWidth
 
     def doVariosTematicos(self):
         '''
@@ -365,6 +374,10 @@ class MyDialogClass(QtGui.QDialog, form_class):
 
         layer_df1, _ = self.layers
 
+        # Hacemos que el DF ocupe todo el ancho si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth += self.legend_df1.elementWidth
+
         fields = [self.combo_norm_c1.currentText(), self.combo_norm_c2.currentText()]
 
         filename = path.join(
@@ -382,6 +395,11 @@ class MyDialogClass(QtGui.QDialog, form_class):
         # Ponemos normalización igual a None
         # Así no afectará a próximos mapas
         layer_df1.symbology.normalization = None
+
+        # Volvemos a hacer que el dataframe ocupe el ancho original
+        # si no hay leyenda
+        if not self.check_legend.isChecked():
+            self.dataframe1.elementWidth -= self.legend_df1.elementWidth
 
     def do(self):
         '''
@@ -610,6 +628,8 @@ class MyDialogClass(QtGui.QDialog, form_class):
         self.dataframe2 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2')[0]
 
 
+
+
 app = QtGui.QApplication(sys.argv)
 myDialog = MyDialogClass(None)
 myDialog.show()
@@ -621,10 +641,15 @@ app.exec_()
 
 En este apartado se muestran los links hacia cada uno de los resultados:
 
-- Sin escala
-- Sin leyenda
-- Sin leyenda y sin escala
-- Completo (Leyenda y escala)
+- [Sin escala](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-scale)
+- [Sin leyenda](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-legend)
+- [Sin leyenda y sin escala](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/no-legend-no-scale)
+- [Completo (Con leyenda y escala)](https://github.com/joseahr/arcpy-awesome-symbolizer/tree/master/results/complete)
 
 # Conclusiones
 ***
+
+Se ha obtenido una buena herramienta para realizar mapas temáticos, a partir de una capa SHP, basado en sus atributos.
+El diseño del mapa es un diseño simple, sin coordenadas, pero cumple con su función de mostrar atributos temáticos.
+
+En lo que se refiere al formulario, una mejora para la experiencia de usuario, sería utilizar QThreads y QSIGNALS para ejecutar ciertas procesos en otro hilo (Para que no interfiera en el hilo de renderizado del UI). Podríamos utilizar esto al cargar los shapefiles y al ejecutar los procesos de impresión de los mapas. De esta manera evitaríamos que el formulario se congelara. Se utilizarían las QSIGNALS para la comunicación entre el hilo que ejecuta el proceso y el hilo de renderizado.
