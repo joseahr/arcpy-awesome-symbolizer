@@ -1,3 +1,119 @@
+# Índice
+***
+
+- [Introducción y objetivos](#introducción-y-objetivos)
+    - [¿Porqué este flujo de trabajo?](#porque-este-flujo-de-trabajo)
+    - [Herramientas utilizadas](#herramientas-utilizadas)
+    - [Desarrollo del formulario en ArcMap](#desarrollo-del-formulario-en-arcmap)
+- [Desarrollo de la práctica](#desarrollo-de-la-práctica)
+- [Resultados](#resultados)
+- [Conclusiones](#conclusiones)
+
+# Introducción y Objetivos
+***
+
+El objetivo del presente documento es mostrar el trabajo realizado en la elaboración de una herramienta para realizar temáticos dependiendo de distintas opciones.
+
+Utilizaremos para construir la interfaz gráfica *`PyQt4`*, un binding de la librería Qt escrita en C++, para python.
+
+El flujo de trabajo de la aplicación será:
+
+- Leer el fichero .mxd que contendrá dos layouts, diseño del mapa, etc.
+- Leer archivo .lyr que contendrá la simbología GRADUATED_COLORS (Este es obtenido a partir de una capa en el entorno de escritorio de ArcGIS)
+- El usuario seleccionará un archivo .shp, la capa será añadida a los dataframes y se le aplicará la simbología GRADUATED_COLORS.
+- El usuario podrá seleccionar qué temáticos desea exportar, así como el nombre de los dataframes y la carpeta donde desea que se guarden los documentos .pdf generados.
+
+## ¿Porqué este flujo de trabajo?
+
+Existen limitaciones a la hora de utilizar arcpy que hay que tener en cuenta en esta práctica:
+
+- No podemos generar desde arcpy proyectos de ArcMap(.mxd)
+- No podemos crear una capa de simbología lyr a partir de un shapefile seleccionada. Hay que crear manualmente un archivo .lyr con la simbología deseado desde ArcMap y utilizar arcpy.mapping.UpdateLayer o arcpy.ApplySymbologyFromLayer_management para actualizar la simbología de una capa que añadimos al dataframe. Es decir:
+```python
+if layer.symbologyType == u'OTHER':
+    assert layer.symbology == None
+```
+Y al ser symbology una propiedad de solo lectura (readonly) no podemos modificar. Lo ideal sería poder hacer:
+```python
+layer.symbology = GraduatedColorsSymbology()
+...
+layer.symbology = AnotherSymbologyClass()
+```
+
+### Herramientas utilizadas
+
+ - ArcMap 10.1 
+ - Python 2.7 (arcpy - junto con la extensión 'Spatial')
+
+### Módulos de python utilizados
+
+Estos son los módulos utilizados para desarrollar la herramienta:
+```python
+from __future__ import unicode_literals
+import sys
+import arcpy
+import arcpy.mapping as mapping
+import math
+from os import path
+from itertools import chain
+from PyQt4 import QtGui, uic
+from PyQt4.QtGui import QFileDialog, QMessageBox
+from functools import partial
+```
+
+Una cosa importante a tener en cuenta en los imports es no sobreescribir funciones [built-in](https://docs.python.org/2/library/functions.html#built-in-functions) de python:
+
+```python
+import arcpy.mapping as map
+```
+
+El código anterior es una mala práctica, ya que estamos sobreescribiendo la función [map](https://docs.python.org/2/library/functions.html#map) que viene por defecto en python y puede inducir a problemas e inconsistencias en nuestro código.
+
+ 
+### Desarrollo del formulario PyQt4 mediante Qt Designer
+
+El desarrollo del formulario se ha llevado a cabo utilizando Qt Designer, una herramienta para crear formularios de forma interactiva en Qt. Qt generará un archivo .ui, un archivo de texto escrito en un lenguaje de marcas que mapea los componentes que hemos utilizado.
+
+Con este archivo podemos hacer dos cosas:
+- Utilizar le herramienta de línea de comandos llamada uic y que viene en la carpeta bin dentro de la instalación de PyQt4, que generará un archivo .py
+- Utilizar el módulo uic de PyQt4 dentro de nuestro código, el cual generará también el correspondiente código de python de nuestro formulario, para utilizarlo dentro de nuestro código. Se ha escogido esta opción pese a ser más lenta, ya que resulta más intuitiva para el aprendizaje.
+
+# Desarrollo de la práctica
+***
+ 
+En primer lugar se ha llevado a cabo el formulario usando Qt Designer. 
+
+Componentes del formulario:
+- QLineEdit para el título del mapa
+- QCheckBox para la escala y la leyenda
+- QTabWidget con los siguientes QTabs:
+    - QTab para temático simple:
+        - QCombobox para el campo
+    - QTab para varios temáticos:
+        - QCombobox para el campo 1
+        - QCombobox para el campo 2
+    - QTab para normalización de campos:
+        - QCombobox para el campo 1
+        - QCombobox para el campo 2
+    - QTab para elegir el nombre de los dataframes:
+        - QLineEdit para nombre del primer dataframe
+        - QLineEdit para nombre del segundo dataframe
+    - QTab para elegir la carpeta de salida:
+        - QPushButton para elegir la carpeta de salida
+        - QScrollArea para añadir un label con la ruta de la carpeta de salida
+- QScrollArea para mostrar la ruta del archivo SHP dentro de un QLabel.
+- QPushButton para elegir el archivo SHP
+- QPushButton para realizar el proceso de impresión
+
+También hacemos que algunos componentes (QCombobox, QCheckBox, ...) no estén activos al iniciar el formulario.
+
+Una vez realizado el formulario, pasamos a crear todo el material necesario para el funcionamiento de la aplicación a partir de ArcMap, es decir:
+    - Archivo MXD: Contendrá los dataframes, diseño del mapa, etc...
+    - Archivo LYR (Graduated Colors), contendrá la simbología GRADUATED_COLORS.
+
+Con todo esto podemos empezar a implementar la lógica de funcionamiento de nuestra aplicación. El código se muestra (comentado) a continuación:
+
+```python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import sys
@@ -494,9 +610,15 @@ class MyDialogClass(QtGui.QDialog, form_class):
         self.dataframe2 = mapping.ListLayoutElements(self.mxd, '', 'data-frame-2')[0]
 
 
-
-
 app = QtGui.QApplication(sys.argv)
 myDialog = MyDialogClass(None)
 myDialog.show()
 app.exec_()
+```
+
+# Resultados 
+***
+
+
+# Conclusiones
+***
