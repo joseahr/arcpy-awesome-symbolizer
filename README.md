@@ -619,6 +619,12 @@ app.exec_()
 # Resultados 
 ***
 
+En este apartado se muestran los links hacia cada uno de los resultados:
+
+- Sin escala
+- Sin leyenda
+- Sin leyenda y sin escala
+- Completo (Leyenda y escala)
 
 # Conclusiones
 ***
